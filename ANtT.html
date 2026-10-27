@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antrenman Programı</title>
+<style>
+  * { box-sizing: border-box; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { background:#0f1115; color:#e6e6e6; margin:0; padding:20px; }
+  h1 { font-size:20px; text-align:center; margin-bottom:20px; color:#fff; }
+
+  .day { background:#171a21; border:1px solid #2a2f3a; border-radius:10px; margin-bottom:14px; overflow:hidden; }
+  .day-header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 18px; cursor:pointer; user-select:none;
+    background:#1d222b; font-weight:600; font-size:16px;
+  }
+  .day-header:hover { background:#232936; }
+  .day-header .arrow { transition:transform .25s; font-size:13px; color:#8a93a5; }
+  .day.open .arrow { transform:rotate(90deg); }
+
+  .day-body { display:none; padding:10px 18px 18px; }
+  .day.open .day-body { display:block; }
+
+  .section-title { font-size:13px; text-transform:uppercase; letter-spacing:.5px;
+    color:#7fb2ff; margin:16px 0 8px; font-weight:700; }
+
+  table { width:100%; border-collapse:collapse; }
+  th, td { padding:8px 6px; text-align:left; font-size:14px; border-bottom:1px solid #232936; vertical-align:top; }
+  th { color:#8a93a5; font-weight:600; font-size:12px; text-transform:uppercase; }
+  td.ex { color:#e6e6e6; font-weight:500; }
+  td.sets { color:#b8c0cf; }
+
+  .set-block { display:flex; align-items:center; gap:5px; margin-bottom:6px; flex-wrap:wrap; }
+  .set-label { color:#c792ea; font-weight:600; font-size:13px; min-width:46px; }
+
+  .kg-stepper {
+    display:inline-flex; align-items:center; border:1px solid #3a4a63;
+    border-radius:7px; overflow:hidden; background:#0f1115;
+  }
+  .kg-btn {
+    width:26px; height:30px; border:none; background:#1d2838; color:#8fb8ff;
+    font-size:16px; font-weight:700; cursor:pointer; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .15s;
+  }
+  .kg-btn:hover { background:#2a3a52; }
+  .kg-btn:active { background:#3a4a63; }
+  .kg-input {
+    width:46px; height:30px; border:none; background:transparent; color:#fff;
+    font-size:13px; text-align:center; font-weight:600;
+    -moz-appearance:textfield;
+  }
+  .kg-input::-webkit-outer-spin-button,
+  .kg-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  .kg-input:focus { outline:none; }
+
+  .rep-input {
+    width:56px; height:30px; padding:0 6px; border-radius:7px;
+    border:1px solid #5a4a2a; background:#0f1115; color:#fff;
+    font-size:13px; text-align:center; font-weight:600;
+    -moz-appearance:textfield;
+  }
+  .rep-input::-webkit-outer-spin-button,
+  .rep-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  .rep-input:focus { outline:none; border-color:#ffcb6b; }
+
+  .unit { font-size:11px; color:#6b7385; }
+
+  .total {
+    display:inline-block; min-width:85px; padding:8px 10px; border-radius:6px;
+    background:#1c2a1e; color:#6ee787; font-size:15px; text-align:right; font-weight:700;
+  }
+  .total.zero { background:#1a1d24; color:#5a6273; }
+
+  .transfer-bar { display:flex; justify-content:flex-end; margin-top:18px; }
+  .btn-transfer {
+    background:#2f6bff; color:#fff; border:none; padding:11px 22px;
+    border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;
+    transition:background .2s;
+  }
+  .btn-transfer:hover { background:#4a8cff; }
+
+  .hint { font-size:12px; color:#6b7385; margin-top:14px; text-align:center; }
+
+  /* ---- Geçmiş (hareket bazlı) ---- */
+  .history-wrap { margin-top:30px; }
+  .history-title { font-size:16px; font-weight:700; color:#fff; margin-bottom:12px; }
+
+  .ex-card {
+    background:#171a21; border:1px solid #2a2f3a; border-radius:10px;
+    margin-bottom:10px; overflow:hidden;
+  }
+  .ex-card-header {
+    padding:12px 16px; background:#1d222b; cursor:pointer;
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:14px; font-weight:700; color:#8fb8ff;
+  }
+  .ex-card-header .count { font-size:12px; color:#8a93a5; font-weight:400; }
+  .ex-card-body { display:none; padding:6px 16px 12px; }
+  .ex-card.open .ex-card-body { display:block; }
+
+  .ex-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:8px 2px; border-bottom:1px solid #232936; font-size:13px; gap:10px;
+  }
+  .ex-row:last-child { border-bottom:none; }
+  .ex-row .date { color:#b8c0cf; flex:1; }
+  .ex-row .kg { color:#6ee787; font-weight:700; }
+  .btn-del {
+    background:transparent; border:1px solid #4a2a2a; color:#ff7b7b;
+    padding:4px 8px; border-radius:6px; font-size:12px; cursor:pointer;
+    transition:background .15s;
+  }
+  .btn-del:hover { background:#2a1414; }
+
+  .empty { color:#5a6273; font-size:13px; text-align:center; padding:20px; }
+</style>
+</head>
+<body>
+
+<h1>🏋️ Antrenman Programı</h1>
+
+<!-- ================= 1. GÜN ================= -->
+<div class="day" id="day1" data-day="1. GÜN">
+  <div class="day-header" onclick="toggleDay('day1')">
+    <span>1. GÜN</span><span class="arrow">▶</span>
+  </div>
+  <div class="day-body">
+
+    <div class="section-title">Isınma</div>
+    <table>
+      <tr><th>Hareket</th><th>Set / Tekrar</th></tr>
+      <tr><td class="ex">Face Pull</td><td class="sets">2x15</td></tr>
+      <tr><td class="ex">Wall Angel</td><td class="sets">2x15</td></tr>
+      <tr><td class="ex">Chin Tuck</td><td class="sets">2x15</td></tr>
+    </table>
+
+    <div class="section-title">Göğüs</div>
+    <table>
+      <tr><th>Hareket</th><th>Set detayı (kg & tekrar)</th><th>Toplam</th></tr>
+      <tr>
+        <td class="ex">Incline Bench Press</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+      <tr>
+        <td class="ex">Fly</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+    </table>
+
+    <div class="section-title">Omuz</div>
+    <table>
+      <tr><th>Hareket</th><th>Set detayı (kg & tekrar)</th><th>Toplam</th></tr>
+      <tr>
+        <td class="ex">Overhead Press</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+      <tr>
+        <td class="ex">Lateral Raise</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+    </table>
+
+    <div class="section-title">Kardiyo</div>
+    <table>
+      <tr><th>Hareket</th><th>Süre</th></tr>
+      <tr><td class="ex">Kardiyo</td><td class="sets">—</td></tr>
+    </table>
+
+    <div class="section-title">Esneme</div>
+    <table>
+      <tr><th>Hareket</th><th>Set / Tekrar</th></tr>
+      <tr><td class="ex">Hip Flexor Stretch</td><td class="sets">2x10</td></tr>
+      <tr><td class="ex">Cat-Cow</td><td class="sets">2x10</td></tr>
+      <tr><td class="ex">Göğüs Esnetme</td><td class="sets">2x10</td></tr>
+    </table>
+
+    <div class="transfer-bar">
+      <button class="btn-transfer" onclick="transferDay('day1')">📥 Günü Aktar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 2. GÜN ================= -->
+<div class="day" id="day2" data-day="2. GÜN">
+  <div class="day-header" onclick="toggleDay('day2')">
+    <span>2. GÜN</span><span class="arrow">▶</span>
+  </div>
+  <div class="day-body">
+
+    <div class="section-title">Isınma</div>
+    <table>
+      <tr><th>Hareket</th><th>Set / Tekrar</th></tr>
+      <tr><td class="ex">Face Pull</td><td class="sets">2x15</td></tr>
+      <tr><td class="ex">Wall Angel</td><td class="sets">2x15</td></tr>
+      <tr><td class="ex">Chin Tuck</td><td class="sets">2x15</td></tr>
+    </table>
+
+    <div class="section-title">Göğüs</div>
+    <table>
+      <tr><th>Hareket</th><th>Set detayı (kg & tekrar)</th><th>Toplam</th></tr>
+      <tr>
+        <td class="ex">Incline Bench Press</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+      <tr>
+        <td class="ex">Fly</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+    </table>
+
+    <div class="section-title">Omuz</div>
+    <table>
+      <tr><th>Hareket</th><th>Set detayı (kg & tekrar)</th><th>Toplam</th></tr>
+      <tr>
+        <td class="ex">Overhead Press</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+      <tr>
+        <td class="ex">Lateral Raise</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+    </table>
+
+    <div class="section-title">Kardiyo</div>
+    <table>
+      <tr><th>Hareket</th><th>Süre</th></tr>
+      <tr><td class="ex">Kardiyo</td><td class="sets">—</td></tr>
+    </table>
+
+    <div class="section-title">Esneme</div>
+    <table>
+      <tr><th>Hareket</th><th>Set / Tekrar</th></tr>
+      <tr><td class="ex">Hip Flexor Stretch</td><td class="sets">2x10</td></tr>
+      <tr><td class="ex">Cat-Cow</td><td class="sets">2x10</td></tr>
+      <tr><td class="ex">Göğüs Esnetme</td><td class="sets">2x10</td></tr>
+    </table>
+
+    <div class="transfer-bar">
+      <button class="btn-transfer" onclick="transferDay('day2')">📥 Günü Aktar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 3. GÜN ================= -->
+<div class="day" id="day3" data-day="3. GÜN">
+  <div class="day-header" onclick="toggleDay('day3')">
+    <span>3. GÜN</span><span class="arrow">▶</span>
+  </div>
+  <div class="day-body">
+
+    <div class="section-title">Isınma</div>
+    <table>
+      <tr><th>Hareket</th><th>Set / Tekrar</th></tr>
+      <tr><td class="ex">Face Pull</td><td class="sets">2x15</td></tr>
+      <tr><td class="ex">Wall Angel</td><td class="sets">2x15</td></tr>
+      <tr><td class="ex">Chin Tuck</td><td class="sets">2x15</td></tr>
+    </table>
+
+    <div class="section-title">Bacak (Superset)</div>
+    <table>
+      <tr><th>Hareket</th><th>Set detayı (kg & tekrar)</th><th>Toplam</th></tr>
+      <tr>
+        <td class="ex">Leg Press</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+      <tr>
+        <td class="ex">Leg Curl</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+      <tr>
+        <td class="ex">Leg Extension</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+      <tr>
+        <td class="ex">Calf Raise</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+    </table>
+
+    <div class="section-title">Kol</div>
+    <table>
+      <tr><th>Hareket</th><th>Set detayı (kg & tekrar)</th><th>Toplam</th></tr>
+      <tr>
+        <td class="ex">Biceps Curl</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+      <tr>
+        <td class="ex">Triceps Pushdown</td>
+        <td class="sets"><div class="set-container" data-sets="3"></div></td>
+        <td><span class="total zero">0 kg</span></td>
+      </tr>
+    </table>
+
+    <div class="section-title">Kardiyo</div>
+    <table>
+      <tr><th>Hareket</th><th>Süre</th></tr>
+      <tr><td class="ex">Kardiyo</td><td class="sets">—</td></tr>
+    </table>
+
+    <div class="section-title">Esneme</div>
+    <table>
+      <tr><th>Hareket</th><th>Set / Tekrar</th></tr>
+      <tr><td class="ex">Hip Flexor Stretch</td><td class="sets">2x10</td></tr>
+      <tr><td class="ex">Cat-Cow</td><td class="sets">2x10</td></tr>
+      <tr><td class="ex">Göğüs Esnetme</td><td class="sets">2x10</td></tr>
+    </table>
+
+    <div class="transfer-bar">
+      <button class="btn-transfer" onclick="transferDay('day3')">📥 Günü Aktar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= GEÇMİŞ ================= -->
+<div class="history-wrap">
+  <div class="history-title">📚 Geçmiş Kayıtlar (Hareket Bazlı)</div>
+  <div id="historyList"></div>
+</div>
+
+<p class="hint">Kg kutusundaki − / + butonları 5'er 5'er artırıp azaltır. Her kaydın yanındaki 🗑️ ile tek tek silebilirsin.</p>
+
+<script>
+const STORAGE_KEY = 'antrenman_gecmis_hareket';
+const KG_STEP = 5;
+
+function buildSetInputs() {
+  document.querySelectorAll('.set-container').forEach(container => {
+    const sets = parseInt(container.dataset.sets) || 0;
+    let html = '';
+    for (let i = 1; i <= sets; i++) {
+      html += `
+        <div class="set-block">
+          <span class="set-label">${i}. Set</span>
+          <div class="kg-stepper">
+            <button type="button" class="kg-btn" onclick="stepKg(this, -${KG_STEP})">−</button>
+            <input type="number" class="kg-input" placeholder="kg" min="0" step="${KG_STEP}" data-set="${i}" oninput="recalcRow(this)">
+            <button type="button" class="kg-btn" onclick="stepKg(this, ${KG_STEP})">+</button>
+          </div>
+          <span class="unit">kg</span>
+          <input type="number" class="rep-input" placeholder="tekrar" min="0" step="1" data-set="${i}" oninput="recalcRow(this)">
+          <span class="unit">tekrar</span>
+        </div>`;
+    }
+    container.innerHTML = html;
+  });
+}
+buildSetInputs();
+
+function toggleDay(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+function stepKg(btn, delta) {
+  const input = btn.parentElement.querySelector('.kg-input');
+  let val = parseFloat(input.value) || 0;
+  val = Math.max(0, val + delta);
+  input.value = val;
+  recalcRow(input);
+}
+
+function recalcRow(anyInput) {
+  const tr = anyInput.closest('tr');
+  const container = tr.querySelector('.set-container');
+  const totalBox = tr.querySelector('.total');
+  if (!container || !totalBox) return;
+
+  const kgInputs  = container.querySelectorAll('.kg-input');
+  const repInputs = container.querySelectorAll('.rep-input');
+  let sum = 0;
+  kgInputs.forEach((kgEl, idx) => {
+    const kg  = parseFloat(kgEl.value) || 0;
+    const rep = parseFloat(repInputs[idx]?.value) || 0;
+    sum += kg * rep;
+  });
+
+  totalBox.textContent = sum > 0 ? sum.toFixed(0) + ' kg' : '0 kg';
+  totalBox.classList.toggle('zero', sum <= 0);
+}
+
+/* ---------- AKTAR (hareket bazlı) ---------- */
+function transferDay(dayId) {
+  const dayEl = document.getElementById(dayId);
+  const rows = dayEl.querySelectorAll('.day-body tr');
+  const dateStr = new Date().toLocaleDateString('tr-TR');
+
+  let anyData = false;
+  const history = loadHistory();
+
+  rows.forEach(tr => {
+    const container = tr.querySelector('.set-container');
+    if (!container) return;
+    const exName = tr.querySelector('.ex')?.textContent.trim();
+    if (!exName) return;
+
+    const kgInputs  = container.querySelectorAll('.kg-input');
+    const repInputs = container.querySelectorAll('.rep-input');
+    let rowTotal = 0;
+
+    kgInputs.forEach((kgEl, idx) => {
+      const kg  = parseFloat(kgEl.value) || 0;
+      const rep = parseFloat(repInputs[idx]?.value) || 0;
+      rowTotal += kg * rep;
+    });
+
+    if (rowTotal > 0) {
+      anyData = true;
+      if (!history[exName]) history[exName] = [];
+      history[exName].push({ id: Date.now() + Math.random(), date: dateStr, kg: rowTotal, ts: Date.now() });
+    }
+  });
+
+  if (!anyData) {
+    alert('Aktarılacak veri yok. Önce kg / tekrar gir.');
+    return;
+  }
+
+  saveHistory(history);
+
+  dayEl.querySelectorAll('.kg-input, .rep-input').forEach(inp => inp.value = '');
+  dayEl.querySelectorAll('.total').forEach(t => { t.textContent = '0 kg'; t.classList.add('zero'); });
+
+  renderHistory();
+  dayEl.classList.remove('open');
+}
+
+/* ---------- GEÇMİŞ ---------- */
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveHistory(h) { localStorage.setItem(STORAGE_KEY, JSON.stringify(h)); }
+
+function toggleExCard(name) {
+  document.getElementById('ex-' + encodeURIComponent(name))?.classList.toggle('open');
+}
+
+/* Tek bir kaydı sil */
+function deleteEntry(exName, entryId) {
+  const history = loadHistory();
+  if (!history[exName]) return;
+
+  history[exName] = history[exName].filter(e => String(e.id) !== String(entryId));
+
+  // hareketin hiç kaydı kalmadıysa anahtarı tamamen kaldır
+  if (history[exName].length === 0) delete history[exName];
+
+  saveHistory(history);
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  const history = loadHistory();
+  const names = Object.keys(history).sort((a,b) => a.localeCompare(b, 'tr'));
+
+  if (names.length === 0) {
+    list.innerHTML = '<div class="empty">Henüz kayıt yok. Bir günü tamamlayıp "Günü Aktar"a bas.</div>';
+    return;
+  }
+
+  list.innerHTML = names.map(name => {
+    const entries = history[name]
+      .slice()
+      .sort((a,b) => b.ts - a.ts)
+      .map(e => `
+        <div class="ex-row">
+          <span class="date">${e.date}</span>
+          <span class="kg">${e.kg.toFixed(0)} kg</span>
+          <button class="btn-del" title="Bu kaydı sil"
+            onclick="event.stopPropagation(); deleteEntry('${name.replace(/'/g, "\\'")}', '${e.id}')">🗑️</button>
+        </div>`).join('');
+
+    return `
+      <div class="ex-card" id="ex-${encodeURIComponent(name)}">
+        <div class="ex-card-header" onclick="toggleExCard('${name.replace(/'/g, "\\'")}')">
+          <span>${name}</span>
+          <span class="count">${history[name].length} kayıt ▾</span>
+        </div>
+        <div class="ex-card-body">${entries}</div>
+      </div>`;
+  }).join('');
+}
+
+renderHistory();
+</script>
+
+</body>
+</html>
